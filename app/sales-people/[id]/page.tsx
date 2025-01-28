@@ -105,7 +105,7 @@ export default function SalesPersonDetail({ params }: DetailPageProps) {
           return p;
         });
         localStorage.setItem('salesPeople', JSON.stringify(updatedSalesPeople));
-        const updatedPerson = updatedSalesPeople.find(p => p.id === params.id);
+        const updatedPerson = updatedSalesPeople.find((p: SalesPerson) => p.id === params.id);
         if (updatedPerson) setSalesPerson(updatedPerson);
       }
     } catch (error) {
@@ -165,7 +165,7 @@ export default function SalesPersonDetail({ params }: DetailPageProps) {
             return p;
           });
           localStorage.setItem('salesPeople', JSON.stringify(updatedSalesPeople));
-          const updatedPerson = updatedSalesPeople.find(p => p.id === params.id);
+          const updatedPerson = updatedSalesPeople.find((p: SalesPerson) => p.id === params.id);
           if (updatedPerson) setSalesPerson(updatedPerson);
         }
       }
@@ -185,7 +185,7 @@ export default function SalesPersonDetail({ params }: DetailPageProps) {
       localStorage.setItem('meetings', JSON.stringify(updatedMeetings));
       
       // Update meetings state
-      setMeetings(updatedMeetings.filter(m => m.salesPersonId === params.id));
+      setMeetings(updatedMeetings.filter((m: Meeting) => m.salesPersonId === params.id));
 
       // Update sales person's current meetings count
       const savedSalesPeople = localStorage.getItem('salesPeople');
@@ -204,7 +204,7 @@ export default function SalesPersonDetail({ params }: DetailPageProps) {
           return p;
         });
         localStorage.setItem('salesPeople', JSON.stringify(updatedSalesPeople));
-        setSalesPerson(updatedSalesPeople.find(p => p.id === params.id) || null);
+        setSalesPerson(updatedSalesPeople.find((p: SalesPerson) => p.id === params.id) || null);
       }
     } catch (error) {
       console.error('Error deleting meeting:', error);
@@ -225,7 +225,7 @@ export default function SalesPersonDetail({ params }: DetailPageProps) {
       localStorage.setItem('deals', JSON.stringify(updatedDeals));
       
       // Update deals state
-      setDeals(updatedDeals.filter(d => d.salesPersonId === params.id));
+      setDeals(updatedDeals.filter((d: Deal) => d.salesPersonId === params.id));
 
       // If the deal was won, update the sales person's current deals count
       if (dealToDelete && dealToDelete.status === 'won') {
@@ -245,7 +245,7 @@ export default function SalesPersonDetail({ params }: DetailPageProps) {
             return p;
           });
           localStorage.setItem('salesPeople', JSON.stringify(updatedSalesPeople));
-          setSalesPerson(updatedSalesPeople.find(p => p.id === params.id) || null);
+          setSalesPerson(updatedSalesPeople.find((p: SalesPerson) => p.id === params.id) || null);
         }
       }
     } catch (error) {
