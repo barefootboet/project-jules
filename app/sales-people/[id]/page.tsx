@@ -6,7 +6,11 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
 
 type DetailPageProps = {
-  params: { id: string };
+  params: {
+    id: string;
+    [key: string]: string | string[];
+  };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 export default function SalesPersonDetail({ params }: DetailPageProps) {
