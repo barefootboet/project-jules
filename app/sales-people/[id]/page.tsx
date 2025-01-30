@@ -5,15 +5,13 @@ import { SalesPerson, Meeting, Deal } from '../../types';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
 
-type DetailPageProps = {
+interface PageProps {
   params: {
     id: string;
-    [key: string]: string | string[];
   };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+}
 
-export default function SalesPersonDetail({ params }: DetailPageProps) {
+export default function SalesPersonDetail({ params }: PageProps) {
   const router = useRouter();
   const [salesPerson, setSalesPerson] = useState<SalesPerson | null>(null);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
