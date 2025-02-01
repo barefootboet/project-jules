@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { SalesPerson } from '../types';
+import { SalesPerson, Meeting } from '../types';
 import Link from 'next/link';
 import AddSalesPersonModal from '../components/AddSalesPersonModal';
 import DashboardLayout from '../components/DashboardLayout';
@@ -36,14 +36,44 @@ const ProgressBar = ({ current, target }: { current: number; target: number }) =
   );
 };
 
+// Add this helper function
+const getSalesPersonAlerts = (meetings: Meeting[] | undefined) => {
+  const alerts = {
+    hasIncompleteOutcomes: false,
+    hasWeekendMeetings: false
+  };
+
+  if (!meetings) return alerts;
+
+  meetings.forEach(meeting => {
+    const meetingDate = new Date(meeting.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check for past meetings without outcomes
+    if (meetingDate < today && !meeting.outcome) {
+      alerts.hasIncompleteOutcomes = true;
+    }
+
+    // Check for weekend meetings
+    if (meetingDate.getDay() === 0 || meetingDate.getDay() === 6) {
+      alerts.hasWeekendMeetings = true;
+    }
+  });
+
+  return alerts;
+};
+
 export default function SalesPeople() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [salesPeople, setSalesPeople] = useState<SalesPerson[]>([]);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
+        // Load sales people
         const savedSalesPeople = localStorage.getItem('salesPeople');
         if (savedSalesPeople) {
           setSalesPeople(JSON.parse(savedSalesPeople));
@@ -51,8 +81,14 @@ export default function SalesPeople() {
           setSalesPeople(initialSalesPeople);
           localStorage.setItem('salesPeople', JSON.stringify(initialSalesPeople));
         }
+
+        // Load meetings
+        const savedMeetings = localStorage.getItem('meetings');
+        if (savedMeetings) {
+          setMeetings(JSON.parse(savedMeetings));
+        }
       } catch (error) {
-        console.error('Error loading sales people:', error);
+        console.error('Error loading data:', error);
         setSalesPeople(initialSalesPeople);
       } finally {
         setIsLoading(false);
@@ -129,48 +165,81 @@ export default function SalesPeople() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                      {salesPeople.map((person) => (
-                        <tr key={person.id}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
-                            <div className="font-medium text-gray-900 dark:text-gray-100">
-                              {person.name}
-                            </div>
-                            <div className="text-gray-500 dark:text-gray-400">
-                              {person.email}
-                            </div>
-                          </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            <div className="flex flex-col gap-1">
-                              <span>
-                                {person.current.meetings} / {person.target.meetings} meetings
-                              </span>
-                              <ProgressBar 
-                                current={person.current.meetings} 
-                                target={person.target.meetings} 
-                              />
-                            </div>
-                          </td>
-                          <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            <div className="flex flex-col gap-1">
-                              <span>
-                                {person.current.deals} / {person.target.deals} deals
-                              </span>
-                              <ProgressBar 
-                                current={person.current.deals} 
-                                target={person.target.deals} 
-                              />
-                            </div>
-                          </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <Link
-                              href={`/sales-people/${person.id}`}
-                              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                            >
-                              View details
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
+                      {salesPeople.map((person) => {
+                        const personMeetings = meetings.filter(m => m.salesPersonId === person.id);
+                        const alerts = getSalesPersonAlerts(personMeetings);
+                        
+                        return (
+                          <tr key={person.id}>
+                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
+                              <div className="flex items-center gap-2">
+                                <div>
+                                  <div className="font-medium text-gray-900 dark:text-gray-100">
+                                    {person.name}
+                                  </div>
+                                  <div className="text-gray-500 dark:text-gray-400">
+                                    {person.email}
+                                  </div>
+                                </div>
+                                {(alerts.hasIncompleteOutcomes || alerts.hasWeekendMeetings) && (
+                                  <div className="flex gap-1">
+                                    {alerts.hasIncompleteOutcomes && (
+                                      <span 
+                                        className="inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700"
+                                        title="Has meetings without outcomes"
+                                      >
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                      </span>
+                                    )}
+                                    {alerts.hasWeekendMeetings && (
+                                      <span 
+                                        className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-700"
+                                        title="Has meetings that need rescheduling"
+                                      >
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="flex flex-col gap-1">
+                                <span>
+                                  {person.current.meetings} / {person.target.meetings} meetings
+                                </span>
+                                <ProgressBar 
+                                  current={person.current.meetings} 
+                                  target={person.target.meetings} 
+                                />
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="flex flex-col gap-1">
+                                <span>
+                                  {person.current.deals} / {person.target.deals} deals
+                                </span>
+                                <ProgressBar 
+                                  current={person.current.deals} 
+                                  target={person.target.deals} 
+                                />
+                              </div>
+                            </td>
+                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                              <Link
+                                href={`/sales-people/${person.id}`}
+                                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                              >
+                                View details
+                              </Link>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
