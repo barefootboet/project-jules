@@ -1,15 +1,17 @@
 import { Metadata } from 'next'
 import SalesPersonDetails from '@/app/components/SalesPersonDetails';
 
-type Props = {
-  params: { id: string }
+interface PageProps {
+  params: {
+    id: string;
+  };
 }
 
 export const metadata: Metadata = {
   title: 'Sales Person Details',
 }
 
-export default async function SalesPersonPage({ params }: Props) {
+export default async function SalesPersonPage({ params }: PageProps) {
   return (
     <SalesPersonDetails id={params.id} />
   );
