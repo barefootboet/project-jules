@@ -19,7 +19,7 @@ export type Meeting = {
   date: string;
   notes?: string;
   needsReschedule?: boolean;
-  outcome?: string;
+  outcome?: string | null;
 };
 
 export type Deal = {

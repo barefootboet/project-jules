@@ -18,6 +18,7 @@ export interface Meeting {
   clientName: string;
   date: string;
   notes: string;
+  outcome?: string;
 }
 
 export interface Deal {
